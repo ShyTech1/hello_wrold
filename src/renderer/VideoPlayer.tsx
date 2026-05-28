@@ -131,11 +131,20 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
   }, [volume]);
 
   if (!currentVideo) {
-    return <div className="empty-state">No videos in selected folder</div>;
+    return (
+      <div className="empty-state" role="status">
+        <div>
+          <p>Live preview</p>
+          <p style={{ marginTop: 8, fontSize: '0.85rem', opacity: 0.7 }}>
+            Pick a folder or add videos to start the loop.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!blobUrl) {
-    return <div className="empty-state">Loading...</div>;
+    return <div className="empty-state" role="status">Loading…</div>;
   }
 
   return (

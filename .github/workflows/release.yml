@@ -77,9 +77,9 @@ jobs:
         run: |
           $requiredFiles = @(
             "release-artifacts/latest.yml",
-            "release-artifacts/Video Folder Loop Player-Setup-$env:RELEASE_VERSION-x64.exe",
-            "release-artifacts/Video Folder Loop Player-Setup-$env:RELEASE_VERSION-x64.exe.blockmap",
-            "release-artifacts/Video Folder Loop Player-Portable-$env:RELEASE_VERSION-x64.exe"
+            "release-artifacts/Screen-looper-Setup-$env:RELEASE_VERSION-x64.exe",
+            "release-artifacts/Screen-looper-Setup-$env:RELEASE_VERSION-x64.exe.blockmap",
+            "release-artifacts/Screen-looper-Portable-$env:RELEASE_VERSION-x64.exe"
           )
 
           foreach ($file in $requiredFiles) {
@@ -113,7 +113,7 @@ jobs:
             "--target",
             "${{ github.sha }}",
             "--title",
-            "Video Folder Loop Player $env:RELEASE_VERSION",
+            "Screen-looper $env:RELEASE_VERSION",
             "--notes",
             $notes
           )
