@@ -32,9 +32,18 @@ function registerVideoProtocol(): void {
 }
 
 function createWindow(): BrowserWindow {
+  // In packaged builds the .exe icon (baked in by electron-builder from build/icon.ico)
+  // drives the taskbar entry, so only set BrowserWindow.icon during dev runs.
+  const devIconPath = app.isPackaged ? undefined : path.join(__dirname, '../../build/icon.png');
+
   const window = new BrowserWindow({
-    width: 1100,
-    height: 720,
+    width: 1280,
+    height: 800,
+    minWidth: 960,
+    minHeight: 600,
+    title: 'Screen-looper',
+    backgroundColor: '#0f1117',
+    ...(devIconPath ? { icon: devIconPath } : {}),
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { FolderSelector } from './FolderSelector';
 import { PlaylistManager } from './PlaylistManager';
 import { VideoPlayer, type VideoPlayerHandle } from './VideoPlayer';
 import type { Settings, VideoFile } from './types';
@@ -21,6 +20,23 @@ function orderPlaylist(videos: VideoFile[], playlistOrder: string[]): VideoFile[
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return [...ordered, ...remaining];
+}
+
+function BrandLogo() {
+  return (
+    <svg viewBox="0 0 256 256" className="brand-logo" aria-hidden="true">
+      <defs>
+        <linearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6e5af0" />
+          <stop offset="100%" stopColor="#22bce6" />
+        </linearGradient>
+      </defs>
+      <rect width="256" height="256" rx="56" fill="url(#brand-gradient)" />
+      <path d="M 196 96 A 68 68 0 1 0 196 160" fill="none" stroke="#ffffff" strokeWidth="16" strokeLinecap="round" />
+      <polygon points="212,76 232,108 192,108" fill="#ffffff" />
+      <polygon points="108,90 108,166 168,128" fill="#ffffff" />
+    </svg>
+  );
 }
 
 export default function App() {
@@ -306,6 +322,8 @@ export default function App() {
     }
   };
 
+  const folderLabel = settings.folderPath || 'No folder selected';
+
   return (
     <main className={`app${settings.fullscreen ? ' is-fullscreen' : ''}`}>
       {settings.fullscreen ? (
@@ -313,57 +331,85 @@ export default function App() {
           Exit Fullscreen
         </button>
       ) : null}
-      <header className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">Wide Screen Activity Loop</p>
-          <h1>Keep the school display simple, calm, and easy to manage.</h1>
-          <p className="hero-description">
-            Add, remove, and reorder videos while the screen keeps playing. The current item stays clear, and the
-            queue stays easy to understand from a distance.
-          </p>
+
+      <header className="top-bar">
+        <div className="brand">
+          <BrandLogo />
+          <div className="brand-text">
+            <strong>Screen-looper</strong>
+            <span className="brand-version">v{__APP_VERSION__}</span>
+          </div>
         </div>
-        <div className="hero-stats" aria-label="Playback overview">
-          <div className="stat-card">
-            <span className="stat-label">Now playing</span>
-            <strong>{currentVideo?.name || 'Nothing playing yet'}</strong>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Up next</span>
-            <strong>{nextVideo?.name || 'Nothing queued'}</strong>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">In the queue</span>
-            <strong>{readyPlaylist.length === 0 ? 'Empty' : `${readyPlaylist.length} video${readyPlaylist.length === 1 ? '' : 's'}`}</strong>
-          </div>
+
+        <div className="folder-bar" title={folderLabel}>
+          <span className="folder-bar-label">Folder</span>
+          <span className="folder-bar-path">{folderLabel}</span>
+          <button type="button" className="folder-bar-button" onClick={handleSelectFolder}>
+            {settings.folderPath ? 'Change' : 'Select Folder'}
+          </button>
+        </div>
+
+        <div className="top-actions">
+          <button
+            type="button"
+            className="update-button"
+            onClick={() => {
+              void window.electronAPI.checkForUpdates().then(({ status }) => {
+                if (status === 'ready') {
+                  alert('An update has already been downloaded. Restart the app to install it.');
+                } else if (status === 'checking') {
+                  alert("Checking for updates… if one is available it will download and you'll be prompted to restart.");
+                } else {
+                  alert('Updates are not available in this version of the app.');
+                }
+              });
+            }}
+          >
+            Check for updates
+          </button>
         </div>
       </header>
 
-      <FolderSelector folderPath={settings.folderPath} onSelectFolder={handleSelectFolder} />
-
       <div className="app-shell">
         <section className="player-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-label">Live Preview</p>
+          <VideoPlayer
+            ref={videoPlayerRef}
+            currentVideo={currentVideo}
+            muted={settings.muted}
+            volume={settings.volume}
+            showControls={settings.showControls}
+            fullscreen={settings.fullscreen}
+            paused={isPaused}
+            onEnded={advanceToNext}
+            onError={handleVideoError}
+            onPlaybackStateChange={setIsPaused}
+          />
+
+          <div className="now-playing">
+            <div className="now-playing-text">
+              <p className="section-label">Now playing</p>
               <h2>{currentVideo?.name || 'Nothing playing yet'}</h2>
               <p className="section-description">
-                {nextVideo ? `Up next: ${nextVideo.name}` : 'Add videos to the queue to start the loop.'}
+                {nextVideo
+                  ? `Up next: ${nextVideo.name}`
+                  : currentVideo
+                    ? 'Looping a single video.'
+                    : 'Pick a folder or add videos to start the loop.'}
               </p>
             </div>
-            <div className="player-status">
-              <span className={`status-pill${isPaused ? ' is-paused' : ''}`}>
-                {currentVideo ? (isPaused ? 'Paused' : 'Playing') : 'Stopped'}
-              </span>
-            </div>
+            <span className={`status-pill${isPaused ? ' is-paused' : ''}`}>
+              {currentVideo ? (isPaused ? 'Paused' : 'Playing') : 'Stopped'}
+            </span>
           </div>
 
           {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
+
           <div className="controls">
-            <button type="button" onClick={advanceToNext} disabled={readyPlaylist.length === 0}>
-              Next Video
-            </button>
             <button type="button" onClick={togglePaused} disabled={!currentVideo}>
               {isPaused ? 'Play' : 'Pause'}
+            </button>
+            <button type="button" onClick={advanceToNext} disabled={readyPlaylist.length === 0}>
+              Next Video
             </button>
             <label className="volume-pill">
               <span>Volume</span>
@@ -384,52 +430,21 @@ export default function App() {
               {settings.fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             </button>
           </div>
-          <VideoPlayer
-            ref={videoPlayerRef}
-              currentVideo={currentVideo}
-              muted={settings.muted}
-              volume={settings.volume}
-              showControls={settings.showControls}
-              fullscreen={settings.fullscreen}
-              paused={isPaused}
-            onEnded={advanceToNext}
-            onError={handleVideoError}
-            onPlaybackStateChange={setIsPaused}
-          />
         </section>
 
-        <PlaylistManager
-          canManage={Boolean(settings.folderPath)}
-          currentVideoId={currentVideo?.id}
-          playlist={readyPlaylist}
-          onAddFiles={handleAddFiles}
-          onMoveUp={(videoId) => moveVideo(videoId, -1)}
-          onMoveDown={(videoId) => moveVideo(videoId, 1)}
-          onRemove={handleRemoveVideo}
-          onSkipNext={advanceToNext}
-        />
+        <aside className="sidebar">
+          <PlaylistManager
+            canManage={Boolean(settings.folderPath)}
+            currentVideoId={currentVideo?.id}
+            playlist={readyPlaylist}
+            onAddFiles={handleAddFiles}
+            onMoveUp={(videoId) => moveVideo(videoId, -1)}
+            onMoveDown={(videoId) => moveVideo(videoId, 1)}
+            onRemove={handleRemoveVideo}
+            onSkipNext={advanceToNext}
+          />
+        </aside>
       </div>
-
-      <footer className="app-footer">
-        <span className="app-version">v{__APP_VERSION__}</span>
-        <button
-          type="button"
-          className="update-button"
-          onClick={() => {
-            void window.electronAPI.checkForUpdates().then(({ status }) => {
-              if (status === 'ready') {
-                alert('An update has already been downloaded. Restart the app to install it.');
-              } else if (status === 'checking') {
-                alert('Checking for updates… if one is available it will download and you\'ll be prompted to restart.');
-              } else {
-                alert('Updates are not available in this version of the app.');
-              }
-            });
-          }}
-        >
-          Check for updates
-        </button>
-      </footer>
     </main>
   );
 }

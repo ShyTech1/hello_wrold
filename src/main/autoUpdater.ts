@@ -83,7 +83,7 @@ export function startAutoUpdates(window: BrowserWindow): void {
       type: 'info',
       title: 'Update ready',
       message: 'A new version is ready to install.',
-      detail: 'Restart Video Folder Loop Player to finish updating.',
+      detail: 'Restart Screen-looper to finish updating.',
       buttons: ['Restart now', 'Later'],
       defaultId: 0,
       cancelId: 1

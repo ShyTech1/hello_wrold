@@ -1,6 +1,8 @@
-# Video Folder Loop Player
+# Screen-looper
 
-Electron + React + TypeScript desktop app that plays all videos in a selected folder, loops continuously, and updates live when files are added/removed.
+Electron + React + TypeScript desktop app that plays all videos in a selected folder, loops continuously, and updates live when files are added/removed. The interface keeps a large live preview front-and-center with the playlist as a side panel.
+
+Previously released as **Video Folder Loop Player** (versions ≤ 1.0.9). Existing installs continue to receive updates automatically.
 
 ## Security checks
 
@@ -54,8 +56,8 @@ npm run dist:win
 
 The generated files are written to `release-artifacts/`:
 
-- `Video Folder Loop Player-Setup-<version>-x64.exe` is the recommended installer. This build supports automatic updates.
-- `Video Folder Loop Player-Portable-<version>-x64.exe` can be copied to another Windows computer, but should be updated manually by replacing it with a newer portable build.
+- `Screen-looper-Setup-<version>-x64.exe` is the recommended installer. This build supports automatic updates.
+- `Screen-looper-Portable-<version>-x64.exe` can be copied to another Windows computer, but should be updated manually by replacing it with a newer portable build.
 
 Automatic updates are published through GitHub Releases. To publish a new update, create a release branch whose version matches `package.json`:
 
